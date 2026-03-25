@@ -1,0 +1,21 @@
+# Build outputs
+bin/
+obj/
+
+# User-specific VS files
+*.user
+*.suo
+.vs/
+
+# Rider
+.idea/
+
+# dotnet secrets
+secrets.json
+
+# Protect appsettings with real secrets - keep only the placeholder version
+appsettings.json
+
+# OS
+.DS_Store
+Thumbs.db
