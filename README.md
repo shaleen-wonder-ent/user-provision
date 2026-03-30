@@ -217,26 +217,30 @@ az account show --query tenantId -o tsv
 
 In the app registration, go to **API permissions** → **Add a permission** → **Microsoft Graph** → **Application permissions** and add:
 
-| Permission | Purpose |
-|---|---|
-| `User.Read.All` | Look up users by UPN or object ID |
-| `GroupMember.ReadWrite.All` | Add and remove group members |
-| `Group.Read.All` | Resolve a group display name to its object ID |
+> Full permission reference: [Microsoft Graph permissions reference](https://learn.microsoft.com/en-us/graph/permissions-reference)
+
+| Permission | App Role ID (GUID) | Purpose |
+|---|---|---|
+| `User.Read.All` | `df021288-bdef-4463-88db-98f22de89214` | Look up users by UPN or object ID |
+| `GroupMember.ReadWrite.All` | `dbaae8cf-10b5-4b86-a4a1-f871c94c6695` | Add and remove group members |
+| `Group.Read.All` | `5b567255-7703-4780-807c-7be8301ae99b` | Resolve a group display name to its object ID |
+
+The GUIDs above are the **stable app role IDs** for the Microsoft Graph service principal (`00000003-0000-0000-c000-000000000000`) and are identical in every Entra tenant.
 
 ### Azure CLI Method
 
 ```bash
-# User.Read.All
+# User.Read.All  (df021288-bdef-4463-88db-98f22de89214)
 az ad app permission add --id <AppId> \
   --api 00000003-0000-0000-c000-000000000000 \
   --api-permissions df021288-bdef-4463-88db-98f22de89214=Role
 
-# GroupMember.ReadWrite.All
+# GroupMember.ReadWrite.All  (dbaae8cf-10b5-4b86-a4a1-f871c94c6695)
 az ad app permission add --id <AppId> \
   --api 00000003-0000-0000-c000-000000000000 \
   --api-permissions dbaae8cf-10b5-4b86-a4a1-f871c94c6695=Role
 
-# Group.Read.All
+# Group.Read.All  (5b567255-7703-4780-807c-7be8301ae99b)
 az ad app permission add --id <AppId> \
   --api 00000003-0000-0000-c000-000000000000 \
   --api-permissions 5b567255-7703-4780-807c-7be8301ae99b=Role
@@ -579,17 +583,26 @@ GRAPH_SP_ID=$(az ad sp show --id 00000003-0000-0000-c000-000000000000 --query id
 # Get the app's service principal object ID
 APP_SP_ID=$(az ad sp show --id <AppId> --query id -o tsv)
 
-# Add User.Read.All (id: df021288-bdef-4463-88db-98f22de89214)
+# Add User.Read.All (df021288-bdef-4463-88db-98f22de89214)
+# https://learn.microsoft.com/en-us/graph/permissions-reference#userreadall
 az ad app permission add \
   --id <AppId> \
   --api 00000003-0000-0000-c000-000000000000 \
   --api-permissions df021288-bdef-4463-88db-98f22de89214=Role
 
-# Add GroupMember.ReadWrite.All (id: 62a82d76-70ea-41e2-9197-370581804d09)
+# Add GroupMember.ReadWrite.All (dbaae8cf-10b5-4b86-a4a1-f871c94c6695)
+# https://learn.microsoft.com/en-us/graph/permissions-reference#groupmemberreadwriteall
 az ad app permission add \
   --id <AppId> \
   --api 00000003-0000-0000-c000-000000000000 \
-  --api-permissions 62a82d76-70ea-41e2-9197-370581804d09=Role
+  --api-permissions dbaae8cf-10b5-4b86-a4a1-f871c94c6695=Role
+
+# Add Group.Read.All (5b567255-7703-4780-807c-7be8301ae99b)
+# https://learn.microsoft.com/en-us/graph/permissions-reference#groupreadall
+az ad app permission add \
+  --id <AppId> \
+  --api 00000003-0000-0000-c000-000000000000 \
+  --api-permissions 5b567255-7703-4780-807c-7be8301ae99b=Role
 ```
 
 ---
