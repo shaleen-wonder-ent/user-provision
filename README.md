@@ -53,13 +53,13 @@ flowchart TD
     J -- No  --> ERR2([Exit 1 – fatal])
     J -- Yes --> K[/For each UPN in CSV/]
 
-    K --> L[GET /users/{upn}\nresolve UPN → Object ID]
+    K --> L[GET /users/:upn\nresolve UPN → Object ID]
     L --> M{User found?}
     M -- No  --> SKIP1[SKIP – user not found]
     M -- Yes --> N{Operation?}
 
-    N -- add    --> O[POST /groups/{id}/members/ref]
-    N -- remove --> P[DELETE /groups/{id}/members/{userId}/ref]
+    N -- add    --> O[POST /groups/:id/members/ref]
+    N -- remove --> P[DELETE /groups/:id/members/:userId/ref]
 
     O --> Q{Already\na member?}
     Q -- Yes --> SKIP2[SKIP – already member]
