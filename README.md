@@ -8,6 +8,7 @@ Designed to run interactively **or** fully unattended via Windows Task Scheduler
 
 ## Table of Contents
 
+- [Quick Start – Run the App](#quick-start--run-the-app)
 - [Architecture & Flow](#architecture--flow)
 - [Prerequisites](#prerequisites)
 - [CSV File Format](#csv-file-format)
@@ -22,6 +23,103 @@ Designed to run interactively **or** fully unattended via Windows Task Scheduler
 - [Error Handling](#error-handling)
 - [Security Best Practices](#security-best-practices)
 - [Troubleshooting](#troubleshooting)
+
+---
+
+## Quick Start – Run the App
+
+### Who provides what
+
+| Input | Provided by | How |
+|---|---|---|
+| `TenantId`, `ClientId`, `ClientSecret` | IT Admin *(one-time setup)* | `appsettings.json` or `ENTRA_*` environment variables |
+| CSV file | Person running the job | A `.csv` file with one UPN per row |
+| Security group name | Person running the job | CLI argument `--group` or typed at the prompt |
+| Operation | Person running the job | `add` or `remove` as the first argument or at the prompt |
+
+---
+
+### Option A – Interactive (ad-hoc, one-off)
+
+Run with no arguments and the app will prompt for everything:
+
+```powershell
+dotnet run
+```
+
+```
+Operation [add/remove]: add
+CSV file path           : C:\Users\me\new-starters.csv
+Security group name/ID  : IT-AllStaff
+Log file path (optional): C:\logs\entra.log
+```
+
+---
+
+### Option B – Command-line / Scheduled (automated, recurring)
+
+```powershell
+# Add users
+EntraGroupManager.exe add --csv C:\data\users.csv --group "IT-AllStaff" --log C:\logs\entra.log
+
+# Remove users
+EntraGroupManager.exe remove --csv C:\data\leavers.csv --group "IT-AllStaff" --log C:\logs\entra.log
+```
+
+This form is used directly by **Windows Task Scheduler**, **cron**, or **Azure Automation** to run periodically without anyone present.
+
+---
+
+### What the app does, step by step
+
+```
+1. Read appsettings.json   →  load TenantId / ClientId / ClientSecret
+2. Read CSV file           →  extract list of UPNs  (e.g. alice@contoso.com)
+3. Authenticate            →  exchange credentials for a Graph API access token
+4. Resolve group name      →  look up "IT-AllStaff" → get its Object ID
+5. For each UPN in CSV:
+     a. Look up the user   →  UPN → Object ID
+     b. add:    POST   /groups/{id}/members/$ref
+        remove: DELETE /groups/{id}/members/{userId}/$ref
+     c. SKIP silently if already a member (add) or not a member (remove)
+6. Write summary to console + append to log file (if --log supplied)
+7. Exit 0  all done  |  Exit 1  fatal error  |  Exit 2  some users failed
+```
+
+---
+
+### Minimum CSV the user needs to supply
+
+Plainest form – one UPN per line, no header needed:
+
+```
+alice@contoso.com
+bob@contoso.com
+charlie@contoso.com
+```
+
+Or with an optional header row:
+
+```csv
+UserPrincipalName,Department
+alice@contoso.com,Engineering
+bob@contoso.com,Finance
+```
+
+> Accepted header names: `UserPrincipalName`, `UPN`, `Email`, `Mail`, `User`. Extra columns are ignored.
+
+---
+
+### One-time admin setup (done once, never again)
+
+| Step | Action |
+|---|---|
+| 1 | Register an app in Entra ID → note `ClientId` + `TenantId` |
+| 2 | Create a client secret → note `ClientSecret` |
+| 3 | Grant 3 Graph permissions + admin consent (`User.Read.All`, `GroupMember.ReadWrite.All`, `Group.Read.All`) |
+| 4 | Put the 3 values in `appsettings.json` |
+
+After that, anyone with access to the exe and a CSV can run add/remove operations with no Azure portal knowledge needed.
 
 ---
 
